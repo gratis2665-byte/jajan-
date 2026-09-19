@@ -1,0 +1,6 @@
+{
+  "name": "Jajan Makanan & Minuman",
+  "description": "Aplikasi pemesanan jajanan makanan & minuman dengan keranjang belanja, pembayaran digital QRIS, pelacakan pesanan real-time, dan sinkronisasi laporan ke Google Sheets.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

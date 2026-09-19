@@ -1,0 +1,99 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile with role-based access",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string", "maxLength": 100 },
+        "email": { "type": "string", "maxLength": 100 },
+        "role": { "type": "string", "enum": ["customer", "cashier", "admin"] },
+        "avatar": { "type": "string", "maxLength": 500 },
+        "phone": { "type": "string", "maxLength": 30 },
+        "isCustomAdmin": { "type": "boolean" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "name", "email", "role"]
+    },
+    "Product": {
+      "title": "Product",
+      "description": "Catalog item in restaurant menu",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string", "maxLength": 100 },
+        "description": { "type": "string", "maxLength": 500 },
+        "price": { "type": "number" },
+        "category": { "type": "string", "enum": ["makanan", "minuman", "snack"] },
+        "isBestSeller": { "type": "boolean" },
+        "image": { "type": "string", "maxLength": 500 },
+        "stock": { "type": "number" },
+        "isAvailable": { "type": "boolean" },
+        "preparationTimeMinutes": { "type": "number" }
+      },
+      "required": ["id", "name", "price", "category", "stock", "isAvailable"]
+    },
+    "Order": {
+      "title": "Order",
+      "description": "Customer order and transaction record",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "orderNumber": { "type": "string", "maxLength": 50 },
+        "customerId": { "type": "string", "maxLength": 128 },
+        "customerName": { "type": "string", "maxLength": 100 },
+        "customerPhone": { "type": "string", "maxLength": 30 },
+        "subtotal": { "type": "number" },
+        "discount": { "type": "number" },
+        "serviceFee": { "type": "number" },
+        "deliveryFee": { "type": "number" },
+        "total": { "type": "number" },
+        "fulfillmentType": { "type": "string", "enum": ["pickup", "delivery"] },
+        "deliveryAddress": { "type": "string", "maxLength": 300 },
+        "pickupCounter": { "type": "string", "maxLength": 100 },
+        "estimatedTimeMinutes": { "type": "number" },
+        "paymentMethod": { "type": "string" },
+        "paymentStatus": { "type": "string", "enum": ["unpaid", "paid", "refunded"] },
+        "status": { "type": "string", "enum": ["pending_payment", "confirmed", "cooking", "ready_for_pickup", "delivering", "completed", "cancelled"] },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["id", "orderNumber", "customerId", "customerName", "total", "status", "paymentStatus"]
+    },
+    "QRISSettings": {
+      "title": "QRISSettings",
+      "description": "Store QRIS merchant configuration",
+      "type": "object",
+      "properties": {
+        "merchantName": { "type": "string", "maxLength": 100 },
+        "nmid": { "type": "string", "maxLength": 50 },
+        "city": { "type": "string", "maxLength": 100 },
+        "postalCode": { "type": "string", "maxLength": 20 },
+        "instructions": { "type": "string", "maxLength": 500 },
+        "qrImageUrl": { "type": "string" },
+        "autoConfirmationEnabled": { "type": "boolean" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["merchantName", "nmid", "city", "instructions"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/User" },
+      "description": "User profile records indexed by auth UID"
+    },
+    "/products/{productId}": {
+      "schema": { "$ref": "#/entities/Product" },
+      "description": "Restaurant menu and food inventory items"
+    },
+    "/orders/{orderId}": {
+      "schema": { "$ref": "#/entities/Order" },
+      "description": "Orders placed by customers and managed by cashier/admin"
+    },
+    "/settings/{settingId}": {
+      "schema": { "$ref": "#/entities/QRISSettings" },
+      "description": "Global store settings such as QRIS merchant config"
+    }
+  }
+}

@@ -1,0 +1,60 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Global deny-all default
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isStaffOrAdmin() {
+      return isSignedIn() && (
+        request.auth.token.email == 'gratis2665@gmail.com' ||
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+         (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['admin', 'cashier']))
+      );
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    // Users Collection
+    match /users/{userId} {
+      allow read: if isOwner(userId) || isStaffOrAdmin();
+      allow create: if isOwner(userId) || isStaffOrAdmin();
+      allow update: if isOwner(userId) || isStaffOrAdmin();
+      allow delete: if isStaffOrAdmin();
+    }
+
+    // Products Collection (Menu items visible to everyone, editable by staff/admin)
+    match /products/{productId} {
+      allow read: if true;
+      allow write: if isStaffOrAdmin();
+    }
+
+    // Orders Collection
+    match /orders/{orderId} {
+      allow read: if isStaffOrAdmin() || (isSignedIn() && resource.data.customerId == request.auth.uid);
+      allow list: if isStaffOrAdmin() || (isSignedIn() && resource.data.customerId == request.auth.uid);
+      allow create: if isSignedIn() || true; // allow guest checkout
+      allow update: if isStaffOrAdmin() || (isSignedIn() && resource.data.customerId == request.auth.uid);
+      allow delete: if isStaffOrAdmin();
+    }
+
+    // Store Settings (QRIS, etc.)
+    match /settings/{settingId} {
+      allow read: if true; // customers need to view QRIS setting on checkout
+      allow write: if isStaffOrAdmin();
+    }
+  }
+}
