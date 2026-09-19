@@ -2,7 +2,6 @@ import React from 'react';
 import { AppProvider, useApp } from './context/AppContext';
 import { Navbar } from './components/Navbar';
 import { DynamicIslandNotification } from './components/DynamicIslandNotification';
-import { TransactionTicker } from './components/TransactionTicker';
 import { MenuCatalog } from './components/MenuCatalog';
 import { AdminDashboard } from './components/AdminDashboard';
 import { CashierDashboard } from './components/CashierDashboard';
@@ -30,9 +29,8 @@ const MainContent: React.FC = () => {
 
   return (
     <div className="min-h-screen flex flex-col text-slate-100 selection:bg-amber-400 selection:text-gray-950 pb-20 sm:pb-10">
-      {/* Top Floating Dynamic Island & Transaction Marquee */}
+      {/* Top Floating Dynamic Island */}
       <DynamicIslandNotification />
-      <TransactionTicker />
 
       {/* Main Glass Navigation Bar */}
       <Navbar />

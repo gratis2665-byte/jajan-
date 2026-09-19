@@ -30,6 +30,8 @@ import {
   Upload,
   Image as ImageIcon,
   Save,
+  RefreshCw,
+  Boxes,
 } from 'lucide-react';
 import { OrderStatus, UserRole, Product } from '../types';
 import { createTransactionSpreadsheet, syncOrdersToSheet, exportInventoryToSheet } from '../services/googleSheets';
@@ -48,6 +50,7 @@ export const AdminDashboard: React.FC = () => {
     users,
     updateUserRole,
     addNewStaff,
+    deleteUser,
     setActiveTrackOrderId,
     googleAccessToken,
     googleSpreadsheet,
@@ -81,6 +84,12 @@ export const AdminDashboard: React.FC = () => {
   const [newProductStock, setNewProductStock] = useState(20);
   const [newProductDesc, setNewProductDesc] = useState('');
   const [newProductImage, setNewProductImage] = useState('');
+
+  // Restock modal state
+  const [restockProduct, setRestockProduct] = useState<Product | null>(null);
+  const [restockAmount, setRestockAmount] = useState<number>(20);
+  const [inventorySearch, setInventorySearch] = useState('');
+  const [inventoryStockFilter, setInventoryStockFilter] = useState<'all' | 'out_of_stock' | 'low_stock' | 'available'>('all');
 
   // Staff management state
   const [isAddStaffOpen, setIsAddStaffOpen] = useState(false);
@@ -352,10 +361,17 @@ export const AdminDashboard: React.FC = () => {
         </div>
 
         {/* Card 4: Stok Alert */}
-        <div className="apple-glass-card rounded-3xl p-4 sm:p-5 flex flex-col justify-between">
+        <div
+          onClick={() => {
+            setActiveAdminTab('inventory');
+            setInventoryStockFilter(lowStockProducts.some(p => p.stock <= 0) ? 'out_of_stock' : 'low_stock');
+          }}
+          className="apple-glass-card rounded-3xl p-4 sm:p-5 flex flex-col justify-between cursor-pointer hover:border-rose-500/40 transition group"
+          title="Klik untuk lihat menu yang perlu ditambah stoknya"
+        >
           <div className="flex items-center justify-between text-gray-400 text-xs">
-            <span className="font-semibold uppercase tracking-wider">Peringatan Stok</span>
-            <div className="w-8 h-8 rounded-xl bg-rose-500/20 text-rose-400 flex items-center justify-center">
+            <span className="font-semibold uppercase tracking-wider group-hover:text-rose-300 transition">Peringatan Stok</span>
+            <div className="w-8 h-8 rounded-xl bg-rose-500/20 text-rose-400 flex items-center justify-center group-hover:scale-110 transition">
               <AlertTriangle className="w-4 h-4" />
             </div>
           </div>
@@ -363,8 +379,9 @@ export const AdminDashboard: React.FC = () => {
             <span className="text-xl sm:text-2xl font-black text-white">
               {lowStockProducts.length}
             </span>
-            <p className="text-[11px] text-rose-400 mt-0.5 font-medium">
-              {lowStockProducts.length > 0 ? 'Item stok menipis / perlu restock' : 'Semua stok aman'}
+            <p className="text-[11px] text-rose-400 mt-0.5 font-medium flex items-center gap-1">
+              <span>{lowStockProducts.length > 0 ? 'Item stok menipis / perlu restock' : 'Semua stok aman'}</span>
+              {lowStockProducts.length > 0 && <span className="underline ml-1">Atur Stok &rarr;</span>}
             </p>
           </div>
         </div>
@@ -688,84 +705,367 @@ export const AdminDashboard: React.FC = () => {
       {/* TAB 3: MANAJEMEN INVENTARIS PRODUK */}
       {activeAdminTab === 'inventory' && (
         <div className="space-y-4">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
-              <h2 className="text-base font-bold text-white">
-                Inventaris Produk &amp; Stok Menu ({products.length})
+              <h2 className="text-base font-bold text-white flex items-center gap-2">
+                <span>Inventaris Produk &amp; Stok Menu ({products.length})</span>
+                {products.filter((p) => p.stock <= 0).length > 0 && (
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-500/20 text-rose-300 border border-rose-500/30">
+                    {products.filter((p) => p.stock <= 0).length} Menu Habis
+                  </span>
+                )}
               </h2>
-              <p className="text-xs text-gray-400">Atur ketersediaan, ubah stok, dan tambah menu jajan baru.</p>
+              <p className="text-xs text-gray-400">Atur ketersediaan, tambah stok saat habis, dan kelola menu jajan.</p>
             </div>
 
-            <button
-              onClick={() => setIsAddProductOpen(true)}
-              className="px-3.5 py-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-gray-950 font-bold text-xs flex items-center gap-1.5 shadow-md transition cursor-pointer"
-            >
-              <Plus className="w-4 h-4" />
-              <span>Tambah Menu Jajan</span>
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setIsAddProductOpen(true)}
+                className="px-3.5 py-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-gray-950 font-bold text-xs flex items-center gap-1.5 shadow-md transition cursor-pointer"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Tambah Menu Jajan</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Quick Alert Banner for Out-of-Stock Items */}
+          {products.filter((p) => p.stock <= 0).length > 0 && (
+            <div className="apple-glass rounded-2xl p-4 border border-rose-500/30 bg-rose-950/20 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="flex items-start gap-3">
+                <div className="p-2 rounded-xl bg-rose-500/20 text-rose-400 shrink-0 mt-0.5">
+                  <AlertTriangle className="w-4 h-4" />
+                </div>
+                <div>
+                  <h4 className="text-xs font-bold text-rose-200">
+                    Ada {products.filter((p) => p.stock <= 0).length} menu dengan stok HABIS!
+                  </h4>
+                  <p className="text-[11px] text-gray-300 mt-0.5">
+                    Pelanggan tidak dapat memesan menu yang stoknya 0. Klik tombol restock untuk menambah stok kembali.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 shrink-0">
+                <button
+                  onClick={() => {
+                    const outOfStockItems = products.filter((p) => p.stock <= 0);
+                    outOfStockItems.forEach((p) => {
+                      updateProduct(p.id, { stock: 20, isAvailable: true });
+                    });
+                    pushNotification({
+                      title: 'Restock Massal Selesai',
+                      message: `${outOfStockItems.length} menu yang habis berhasil diisi kembali stoknya (+20).`,
+                      type: 'system',
+                    });
+                  }}
+                  className="px-3 py-1.5 rounded-xl bg-rose-500 hover:bg-rose-400 text-white font-bold text-xs flex items-center gap-1.5 transition cursor-pointer shadow-sm"
+                >
+                  <RefreshCw className="w-3.5 h-3.5" />
+                  <span>Restock Semua (+20)</span>
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Filter & Search Bar */}
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div className="flex items-center gap-1.5 overflow-x-auto w-full sm:w-auto">
+              {[
+                { id: 'all', label: `Semua Menu (${products.length})` },
+                { id: 'out_of_stock', label: `Stok Habis (${products.filter((p) => p.stock <= 0).length})` },
+                { id: 'low_stock', label: `Stok Menipis (${products.filter((p) => p.stock > 0 && p.stock <= 5).length})` },
+                { id: 'available', label: `Stok Aman (${products.filter((p) => p.stock > 5).length})` },
+              ].map((filterTab) => (
+                <button
+                  key={filterTab.id}
+                  onClick={() => setInventoryStockFilter(filterTab.id as any)}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-medium whitespace-nowrap transition cursor-pointer ${
+                    inventoryStockFilter === filterTab.id
+                      ? 'bg-amber-400 text-gray-950 font-bold'
+                      : 'apple-glass-pill text-gray-300 hover:text-white'
+                  }`}
+                >
+                  {filterTab.label}
+                </button>
+              ))}
+            </div>
+
+            <div className="relative w-full sm:w-64">
+              <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+              <input
+                type="text"
+                placeholder="Cari nama menu..."
+                value={inventorySearch}
+                onChange={(e) => setInventorySearch(e.target.value)}
+                className="w-full bg-white/5 border border-white/10 rounded-xl pl-9 pr-3 py-1.5 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-amber-400"
+              />
+            </div>
           </div>
 
           {/* Products List Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
-            {products.map((p) => (
-              <div
-                key={p.id}
-                className="apple-glass rounded-2xl p-3.5 border border-white/10 flex gap-3 text-left items-center justify-between"
-              >
-                <img
-                  src={p.image}
-                  alt={p.name}
-                  referrerPolicy="no-referrer"
-                  className="w-16 h-16 rounded-xl object-cover shrink-0 bg-gray-900"
-                />
+          {(() => {
+            const filteredProducts = products.filter((p) => {
+              const matchesSearch = p.name.toLowerCase().includes(inventorySearch.toLowerCase());
+              if (!matchesSearch) return false;
+              if (inventoryStockFilter === 'out_of_stock') return p.stock <= 0;
+              if (inventoryStockFilter === 'low_stock') return p.stock > 0 && p.stock <= 5;
+              if (inventoryStockFilter === 'available') return p.stock > 5;
+              return true;
+            });
 
-                <div className="flex-1 min-w-0 pr-2">
-                  <h4 className="text-xs font-bold text-white truncate">{p.name}</h4>
-                  <p className="text-[11px] text-amber-400 font-semibold">
-                    Rp {p.price.toLocaleString('id-ID')}
-                  </p>
+            if (filteredProducts.length === 0) {
+              return (
+                <div className="py-16 text-center text-gray-400 text-xs apple-glass rounded-3xl">
+                  Tidak ada menu jajan yang sesuai dengan filter inventaris ini.
+                </div>
+              );
+            }
 
-                  <div className="flex items-center gap-2 mt-1.5">
-                    {/* Stock Quick Editor */}
-                    <div className="flex items-center gap-1 bg-white/10 rounded-lg p-0.5 text-xs">
-                      <button
-                        onClick={() => updateProduct(p.id, { stock: Math.max(0, p.stock - 5) })}
-                        className="px-1.5 hover:text-rose-400"
-                      >
-                        -5
-                      </button>
-                      <span className="font-bold text-white px-1">Stok: {p.stock}</span>
-                      <button
-                        onClick={() => updateProduct(p.id, { stock: p.stock + 5 })}
-                        className="px-1.5 hover:text-emerald-400"
-                      >
-                        +5
-                      </button>
-                    </div>
+            return (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
+                {filteredProducts.map((p) => {
+                  const isOut = p.stock <= 0;
+                  const isLow = p.stock > 0 && p.stock <= 5;
 
-                    <button
-                      onClick={() => updateProduct(p.id, { isAvailable: !p.isAvailable })}
-                      className={`text-[10px] px-2 py-0.5 rounded-md font-semibold cursor-pointer ${
-                        p.isAvailable
-                          ? 'bg-emerald-500/20 text-emerald-300'
-                          : 'bg-rose-500/20 text-rose-300'
+                  return (
+                    <div
+                      key={p.id}
+                      className={`apple-glass rounded-2xl p-3.5 border flex flex-col justify-between text-left transition ${
+                        isOut
+                          ? 'border-rose-500/40 bg-rose-950/10'
+                          : isLow
+                          ? 'border-amber-500/30'
+                          : 'border-white/10'
                       }`}
                     >
-                      {p.isAvailable ? 'Tersedia' : 'Nonaktif'}
+                      <div className="flex gap-3 items-start">
+                        <div className="relative shrink-0">
+                          <img
+                            src={p.image}
+                            alt={p.name}
+                            referrerPolicy="no-referrer"
+                            className="w-16 h-16 rounded-xl object-cover bg-gray-900"
+                          />
+                          {isOut ? (
+                            <span className="absolute inset-0 bg-black/60 rounded-xl flex items-center justify-center text-[10px] font-bold text-rose-300">
+                              HABIS
+                            </span>
+                          ) : isLow ? (
+                            <span className="absolute top-1 left-1 bg-amber-500/90 text-gray-950 font-black text-[9px] px-1 rounded">
+                              Sisa {p.stock}
+                            </span>
+                          ) : null}
+                        </div>
+
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between gap-1">
+                            <h4 className="text-xs font-bold text-white truncate">{p.name}</h4>
+                            <button
+                              onClick={() => deleteProduct(p.id)}
+                              className="text-gray-500 hover:text-rose-400 p-1 transition shrink-0"
+                              title="Hapus produk"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+
+                          <p className="text-[11px] text-amber-400 font-semibold">
+                            Rp {p.price.toLocaleString('id-ID')}
+                          </p>
+
+                          <div className="flex items-center gap-2 mt-1">
+                            <span
+                              className={`text-[10px] px-2 py-0.5 rounded-md font-semibold ${
+                                isOut
+                                  ? 'bg-rose-500/20 text-rose-300 font-bold'
+                                  : isLow
+                                  ? 'bg-amber-500/20 text-amber-300'
+                                  : 'bg-emerald-500/20 text-emerald-300'
+                              }`}
+                            >
+                              {isOut ? 'Stok Kosong' : isLow ? `Sisa ${p.stock}` : `Stok: ${p.stock}`}
+                            </span>
+
+                            <button
+                              onClick={() => updateProduct(p.id, { isAvailable: !p.isAvailable })}
+                              className={`text-[10px] px-2 py-0.5 rounded-md font-semibold cursor-pointer ${
+                                p.isAvailable
+                                  ? 'bg-emerald-500/20 text-emerald-300'
+                                  : 'bg-white/10 text-gray-400'
+                              }`}
+                            >
+                              {p.isAvailable ? 'Aktif' : 'Nonaktif'}
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Stock Adjustment Controls */}
+                      <div className="mt-3 pt-2.5 border-t border-white/10 flex items-center justify-between gap-2">
+                        {/* Incremental Controls */}
+                        <div className="flex items-center gap-1 bg-white/10 rounded-xl p-1 text-xs">
+                          <button
+                            onClick={() => updateProduct(p.id, { stock: Math.max(0, p.stock - 1) })}
+                            className="w-6 h-6 rounded-lg bg-white/5 hover:bg-white/20 flex items-center justify-center font-bold text-gray-300 hover:text-rose-400 transition"
+                            title="Kurang 1"
+                          >
+                            -1
+                          </button>
+                          <span className="font-bold text-white px-1.5 text-center min-w-[28px]">
+                            {p.stock}
+                          </span>
+                          <button
+                            onClick={() => updateProduct(p.id, { stock: p.stock + 1, isAvailable: true })}
+                            className="w-6 h-6 rounded-lg bg-white/5 hover:bg-white/20 flex items-center justify-center font-bold text-gray-300 hover:text-emerald-400 transition"
+                            title="Tambah 1"
+                          >
+                            +1
+                          </button>
+                          <button
+                            onClick={() => updateProduct(p.id, { stock: p.stock + 5, isAvailable: true })}
+                            className="px-1.5 h-6 rounded-lg bg-white/5 hover:bg-white/20 flex items-center justify-center text-[10px] font-bold text-emerald-300 transition"
+                            title="Tambah 5"
+                          >
+                            +5
+                          </button>
+                        </div>
+
+                        {/* Direct Restock Button */}
+                        <button
+                          onClick={() => {
+                            setRestockProduct(p);
+                            setRestockAmount(p.stock <= 0 ? 20 : 10);
+                          }}
+                          className={`px-3 py-1.5 rounded-xl font-bold text-xs flex items-center gap-1.5 transition cursor-pointer shadow-sm ${
+                            isOut
+                              ? 'bg-rose-500 hover:bg-rose-400 text-white animate-pulse'
+                              : 'bg-amber-400 hover:bg-amber-300 text-gray-950'
+                          }`}
+                        >
+                          <Boxes className="w-3.5 h-3.5" />
+                          <span>{isOut ? 'Tambah Stok' : 'Restock'}</span>
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })()}
+
+          {/* Modal Restock Khusus */}
+          {restockProduct && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-md">
+              <div className="apple-glass rounded-3xl max-w-sm w-full p-5 sm:p-6 border border-white/20 space-y-4">
+                <div className="flex items-center justify-between pb-2 border-b border-white/10">
+                  <div className="flex items-center gap-2">
+                    <div className="p-2 rounded-xl bg-amber-400/20 text-amber-400">
+                      <Boxes className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-bold text-white">Tambah Stok Produk</h3>
+                      <p className="text-[11px] text-gray-400 truncate max-w-[200px]">
+                        {restockProduct.name}
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setRestockProduct(null)}
+                    className="text-gray-400 hover:text-white p-1"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+
+                <div className="space-y-3 text-xs">
+                  <div className="p-3 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-between">
+                    <div>
+                      <span className="text-gray-400 text-[11px] block">Stok Saat Ini:</span>
+                      <span
+                        className={`text-base font-extrabold ${
+                          restockProduct.stock <= 0 ? 'text-rose-400' : 'text-amber-400'
+                        }`}
+                      >
+                        {restockProduct.stock <= 0 ? '0 (Habis)' : restockProduct.stock}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-gray-400 text-[11px] block text-right">Stok Baru:</span>
+                      <span className="text-base font-extrabold text-emerald-400 text-right block">
+                        {Math.max(0, restockProduct.stock + Number(restockAmount || 0))}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-gray-300 block mb-1 font-medium">
+                      Jumlah Stok yang Ditambahkan:
+                    </label>
+                    <input
+                      type="number"
+                      min={1}
+                      required
+                      value={restockAmount}
+                      onChange={(e) => setRestockAmount(Math.max(1, Number(e.target.value)))}
+                      className="w-full bg-white/5 border border-white/15 rounded-xl p-2.5 text-sm font-bold text-white focus:outline-none focus:border-amber-400"
+                    />
+                  </div>
+
+                  {/* Quick Preset Buttons */}
+                  <div>
+                    <span className="text-[11px] text-gray-400 block mb-1.5">Pilihan Cepat:</span>
+                    <div className="grid grid-cols-4 gap-2">
+                      {[10, 20, 50, 100].map((qty) => (
+                        <button
+                          key={qty}
+                          type="button"
+                          onClick={() => setRestockAmount(qty)}
+                          className={`py-1.5 rounded-xl text-xs font-bold transition cursor-pointer border ${
+                            restockAmount === qty
+                              ? 'bg-amber-400 text-gray-950 border-amber-400'
+                              : 'bg-white/5 text-gray-300 hover:bg-white/10 border-white/10'
+                          }`}
+                        >
+                          +{qty}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="pt-2 flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setRestockProduct(null)}
+                      className="flex-1 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-gray-200 font-semibold text-xs transition cursor-pointer"
+                    >
+                      Batal
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const newTotal = restockProduct.stock + Number(restockAmount || 0);
+                        updateProduct(restockProduct.id, {
+                          stock: newTotal,
+                          isAvailable: true,
+                        });
+                        pushNotification({
+                          title: 'Stok Berhasil Ditambahkan',
+                          message: `Stok "${restockProduct.name}" berhasil ditambah +${restockAmount}. Total stok kini: ${newTotal}.`,
+                          type: 'system',
+                        });
+                        setRestockProduct(null);
+                      }}
+                      className="flex-1 py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-gray-950 font-bold text-xs transition cursor-pointer shadow-md flex items-center justify-center gap-1.5"
+                    >
+                      <Save className="w-3.5 h-3.5" />
+                      <span>Simpan Stok</span>
                     </button>
                   </div>
                 </div>
-
-                <button
-                  onClick={() => deleteProduct(p.id)}
-                  className="text-gray-500 hover:text-rose-400 p-1.5 transition"
-                  title="Hapus produk"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
               </div>
-            ))}
-          </div>
+            </div>
+          )}
 
           {/* Modal Tambah Produk */}
           {isAddProductOpen && (
@@ -893,6 +1193,7 @@ export const AdminDashboard: React.FC = () => {
                   <th className="p-3.5">Email / Kontak</th>
                   <th className="p-3.5">Peran Saat Ini</th>
                   <th className="p-3.5">Ubah Hak Akses (RBAC)</th>
+                  <th className="p-3.5 text-center">Aksi</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/5 text-gray-300">
@@ -928,6 +1229,28 @@ export const AdminDashboard: React.FC = () => {
                         <option value="cashier">Kasir (POS &amp; Dapur)</option>
                         <option value="customer">Pelanggan</option>
                       </select>
+                    </td>
+                    <td className="p-3.5 text-center">
+                      <button
+                        onClick={() => {
+                          if (users.length <= 1) {
+                            alert('Minimal harus tersisa 1 akun.');
+                            return;
+                          }
+                          if (confirm(`Hapus akun ${u.name}?`)) {
+                            deleteUser(u.id);
+                            pushNotification({
+                              title: 'Akun Dihapus',
+                              message: `Akun ${u.name} telah dihapus dari sistem.`,
+                              type: 'system',
+                            });
+                          }
+                        }}
+                        className="p-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 hover:text-rose-300 transition cursor-pointer"
+                        title={`Hapus Akun ${u.name}`}
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
                     </td>
                   </tr>
                 ))}

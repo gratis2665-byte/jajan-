@@ -5,16 +5,18 @@ import {
   X,
   Shield,
   User as UserIcon,
-  Store,
-  Check,
   LogOut,
   Mail,
+  UserPlus,
+  LogIn,
+  Phone,
   Lock,
-  Sparkles,
-  FileSpreadsheet,
+  Eye,
+  EyeOff,
+  AlertCircle,
 } from 'lucide-react';
-import { UserRole, User } from '../types';
-import { googleSignIn, logout as firebaseLogout, setAccessToken } from '../services/firebaseAuth';
+import { User, UserRole } from '../types';
+import { googleSignIn, logout as firebaseLogout } from '../services/firebaseAuth';
 import { playTapSound } from '../services/soundEffects';
 
 export const AuthModal: React.FC = () => {
@@ -25,50 +27,112 @@ export const AuthModal: React.FC = () => {
     setCurrentUser,
     users,
     switchRole,
+    registerUser,
     setGoogleAccessToken,
     pushNotification,
   } = useApp();
 
-  const [activeTab, setActiveTab] = useState<'quick' | 'email'>('quick');
-  const [selectedRole, setSelectedRole] = useState<UserRole>('customer');
-  const [emailInput, setEmailInput] = useState('');
+  const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
   const [nameInput, setNameInput] = useState('');
+  const [emailInput, setEmailInput] = useState('');
+  const [phoneInput, setPhoneInput] = useState('');
   const [passwordInput, setPasswordInput] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
+
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [googleError, setGoogleError] = useState<string | null>(null);
 
   if (!isAuthModalOpen) return null;
 
-  const handleQuickSwitch = (role: UserRole) => {
-    playTapSound();
-    switchRole(role);
-    pushNotification({
-      title: 'Akses Peran Diperbarui',
-      message: `Anda sekarang masuk sebagai ${role === 'admin' ? 'Super Admin' : role === 'cashier' ? 'Kasir' : 'Pelanggan'}.`,
-      type: 'system',
-    });
-    setIsAuthModalOpen(false);
-  };
-
   const handleEmailSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     playTapSound();
-    if (!nameInput.trim()) return;
+    setFormError(null);
 
-    const loggedUser: User = {
-      id: `user-${Date.now()}`,
-      name: nameInput,
-      email: emailInput || `${nameInput.toLowerCase().replace(/\s+/g, '')}@jajan.com`,
-      role: selectedRole,
-    };
+    const cleanEmail = emailInput.trim().toLowerCase();
 
-    setCurrentUser(loggedUser);
-    pushNotification({
-      title: 'Login Berhasil',
-      message: `Selamat datang, ${loggedUser.name}! Akses: ${selectedRole.toUpperCase()}`,
-      type: 'system',
-    });
-    setIsAuthModalOpen(false);
+    if (authMode === 'register') {
+      if (!nameInput.trim()) {
+        setFormError('Nama lengkap wajib diisi');
+        return;
+      }
+      if (!cleanEmail) {
+        setFormError('Email wajib diisi');
+        return;
+      }
+      if (!passwordInput || passwordInput.length < 4) {
+        setFormError('Password minimal 4 karakter');
+        return;
+      }
+
+      // Check if email already registered
+      const existingUser = users.find((u) => u.email.toLowerCase() === cleanEmail);
+      if (existingUser) {
+        setFormError('Email ini sudah terdaftar. Silakan masuk akun.');
+        return;
+      }
+
+      const registeredUser = registerUser({
+        name: nameInput.trim(),
+        email: cleanEmail,
+        phone: phoneInput.trim() || undefined,
+        password: passwordInput,
+        role: 'customer',
+      });
+
+      setCurrentUser(registeredUser);
+      pushNotification({
+        title: 'Akun Berhasil Dibuat',
+        message: `Selamat datang, ${registeredUser.name}! Akun Anda berhasil didaftarkan.`,
+        type: 'system',
+      });
+      setIsAuthModalOpen(false);
+    } else {
+      // Login mode: cari akun yang cocok dari users list jika ada email
+      if (!cleanEmail) {
+        setFormError('Email wajib diisi');
+        return;
+      }
+      if (!passwordInput) {
+        setFormError('Password wajib diisi');
+        return;
+      }
+
+      const foundUser = users.find((u) => u.email.toLowerCase() === cleanEmail);
+
+      if (foundUser) {
+        // Cek kecocokan password jika akun memiliki password
+        if (foundUser.password && foundUser.password !== passwordInput) {
+          setFormError('Password tidak sesuai. Silakan coba kembali.');
+          return;
+        }
+
+        setCurrentUser(foundUser);
+        pushNotification({
+          title: 'Login Berhasil',
+          message: `Selamat datang kembali, ${foundUser.name}!`,
+          type: 'system',
+        });
+        setIsAuthModalOpen(false);
+      } else {
+        // Jika belum terdaftar, buatkan akun baru otomatis
+        const activeName = cleanEmail.split('@')[0];
+        const loginUser = registerUser({
+          name: activeName.charAt(0).toUpperCase() + activeName.slice(1),
+          email: cleanEmail,
+          password: passwordInput,
+          role: 'customer',
+        });
+        setCurrentUser(loginUser);
+        pushNotification({
+          title: 'Login Berhasil',
+          message: `Selamat datang, ${loginUser.name}!`,
+          type: 'system',
+        });
+        setIsAuthModalOpen(false);
+      }
+    }
   };
 
   const handleGoogleAuth = async () => {
@@ -76,61 +140,57 @@ export const AuthModal: React.FC = () => {
     setGoogleError(null);
     try {
       const result = await googleSignIn();
-      if (!result) return;
-
-      if ('cancelled' in result && result.cancelled) {
-        // User deliberately closed the popup window; reset state silently
+      if (!result || result.cancelled) {
+        setIsGoogleLoading(false);
         return;
       }
 
-      if ('user' in result && result.user) {
-        setGoogleAccessToken(result.accessToken);
-        setAccessToken(result.accessToken);
+      const { user: firebaseUser, accessToken } = result;
 
-        const googleUser: User = {
-          id: result.user.uid,
-          name: result.user.displayName || 'Pengguna Google',
-          email: result.user.email || '',
-          role: 'admin', // give admin rights for sheets management
-          avatar: result.user.photoURL || undefined,
-        };
-
-        setCurrentUser(googleUser);
-        pushNotification({
-          title: 'Google Auth Sukses',
-          message: `Berhasil terhubung ke akun ${googleUser.email}. Fitur sinkronisasi Google Sheets aktif!`,
-          type: 'system',
-        });
-        setIsAuthModalOpen(false);
+      if (accessToken) {
+        setGoogleAccessToken(accessToken);
       }
+
+      // Check if user has email matching admin/owner
+      const userEmail = firebaseUser.email || '';
+      const isAdmin =
+        userEmail.includes('admin') ||
+        userEmail.includes('owner') ||
+        currentUser.role === 'admin';
+
+      const role: UserRole = isAdmin ? 'admin' : 'customer';
+
+      const newUser: User = {
+        id: firebaseUser.uid,
+        name: firebaseUser.displayName || 'Google User',
+        email: userEmail,
+        role: role,
+        avatar: firebaseUser.photoURL || undefined,
+      };
+
+      setCurrentUser(newUser);
+
+      pushNotification({
+        title: 'Login Google Berhasil',
+        message: `Terhubung sebagai ${newUser.name} (${role === 'admin' ? 'Admin' : 'Pelanggan'}). Sinkronisasi Google Sheets aktif.`,
+        type: 'system',
+      });
+
+      setIsAuthModalOpen(false);
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Gagal menghubungkan Google Auth. Coba lagi atau gunakan Login Cepat.';
-      setGoogleError(msg);
+      console.warn('Google Sign In Error:', err);
+      const errorMessage =
+        err instanceof Error ? err.message : 'Gagal menghubungkan Google Sign-In';
+      setGoogleError(errorMessage);
+
+      pushNotification({
+        title: 'Google Sign In',
+        message: 'Gagal terhubung dengan akun Google. Silakan coba kembali.',
+        type: 'system',
+      });
     } finally {
       setIsGoogleLoading(false);
     }
-  };
-
-  const handleDemoGoogleConnect = () => {
-    playTapSound();
-    const demoToken = 'demo_google_sheets_token_' + Date.now();
-    setGoogleAccessToken(demoToken);
-    setAccessToken(demoToken);
-
-    const demoGoogleUser: User = {
-      id: 'google-demo-user',
-      name: 'Owner Jajan (Google Demo)',
-      email: 'owner@jajan-kuliner.com',
-      role: 'admin',
-    };
-
-    setCurrentUser(demoGoogleUser);
-    pushNotification({
-      title: 'Google Sheets Demo Aktif',
-      message: 'Mode integrasi Google Sheets aktif. Anda dapat menguji ekspor laporan transaksi & inventaris.',
-      type: 'system',
-    });
-    setIsAuthModalOpen(false);
   };
 
   return (
@@ -161,10 +221,10 @@ export const AuthModal: React.FC = () => {
               </div>
               <div>
                 <h3 className="text-base font-bold text-white tracking-tight">
-                  Sistem Login Terpadu
+                  Akun &amp; Autentikasi
                 </h3>
                 <p className="text-[11px] text-gray-400">
-                  1 Tempat untuk Admin, Kasir, &amp; Pelanggan
+                  Masuk dengan Google atau Akun Terdaftar
                 </p>
               </div>
             </div>
@@ -221,7 +281,7 @@ export const AuthModal: React.FC = () => {
             {/* Google Workspace Integration Button */}
             <div className="space-y-1.5">
               <label className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider block">
-                Google Sheets Integration
+                Google Sign-In
               </label>
 
               {/* Official Google Sign-In Styled Button */}
@@ -257,156 +317,175 @@ export const AuthModal: React.FC = () => {
                 <span>
                   {isGoogleLoading
                     ? 'Menghubungkan ke Google...'
-                    : 'Masuk dengan Google (Sinkronisasi Sheets)'}
+                    : 'Masuk dengan Google'}
                 </span>
               </button>
 
               {googleError && (
                 <p className="text-[10px] text-rose-400 mt-1">{googleError}</p>
               )}
-
-              <button
-                type="button"
-                onClick={handleDemoGoogleConnect}
-                className="w-full py-2 px-3 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/30 text-emerald-300 text-[11px] font-semibold flex items-center justify-center gap-2 transition cursor-pointer"
-              >
-                <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-400" />
-                <span>Atau Aktifkan Sinkronisasi Sheets Demo (Instan)</span>
-              </button>
             </div>
 
-            {/* Quick 1-Click Role Switcher */}
-            <div className="space-y-2">
-              <label className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider block">
-                Pilih Akun Demo 1-Klik
-              </label>
-
-              <div className="grid grid-cols-1 gap-2">
+            {/* Email / Akun Login Form */}
+            <div className="pt-2 border-t border-white/10 space-y-3">
+              {/* Tab Selector: Masuk / Daftar */}
+              <div className="grid grid-cols-2 p-1 bg-white/5 rounded-xl border border-white/10 text-xs">
                 <button
                   type="button"
-                  onClick={() => handleQuickSwitch('admin')}
-                  className="p-3 rounded-2xl bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/30 text-left transition flex items-center justify-between cursor-pointer"
+                  onClick={() => {
+                    setAuthMode('login');
+                    setFormError(null);
+                  }}
+                  className={`py-1.5 rounded-lg font-medium transition flex items-center justify-center gap-1.5 ${
+                    authMode === 'login'
+                      ? 'bg-amber-400 text-gray-950 font-bold shadow-sm'
+                      : 'text-gray-400 hover:text-white'
+                  }`}
                 >
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-xl bg-indigo-500 text-white flex items-center justify-center font-bold text-xs">
-                      SA
-                    </div>
-                    <div>
-                      <p className="text-xs font-bold text-white">Budi Santoso (Super Admin)</p>
-                      <p className="text-[10px] text-indigo-300">
-                        Akses penuh: Inventaris, staff, omzet &amp; Google Sheets
-                      </p>
-                    </div>
-                  </div>
-                  {currentUser.role === 'admin' && (
-                    <Check className="w-4 h-4 text-emerald-400" />
-                  )}
+                  <LogIn className="w-3.5 h-3.5" />
+                  <span>Masuk Akun</span>
                 </button>
-
                 <button
                   type="button"
-                  onClick={() => handleQuickSwitch('cashier')}
-                  className="p-3 rounded-2xl bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-left transition flex items-center justify-between cursor-pointer"
+                  onClick={() => {
+                    setAuthMode('register');
+                    setFormError(null);
+                  }}
+                  className={`py-1.5 rounded-lg font-medium transition flex items-center justify-center gap-1.5 ${
+                    authMode === 'register'
+                      ? 'bg-amber-400 text-gray-950 font-bold shadow-sm'
+                      : 'text-gray-400 hover:text-white'
+                  }`}
                 >
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-xl bg-amber-500 text-gray-950 flex items-center justify-center font-bold text-xs">
-                      KS
-                    </div>
-                    <div>
-                      <p className="text-xs font-bold text-white">Siti Rahmawati (Kasir / POS)</p>
-                      <p className="text-[10px] text-amber-300">
-                        Proses pesanan masuk, status dapur &amp; konfirmasi bayar
-                      </p>
-                    </div>
-                  </div>
-                  {currentUser.role === 'cashier' && (
-                    <Check className="w-4 h-4 text-emerald-400" />
-                  )}
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => handleQuickSwitch('customer')}
-                  className="p-3 rounded-2xl bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 text-left transition flex items-center justify-between cursor-pointer"
-                >
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-xl bg-emerald-500 text-gray-950 flex items-center justify-center font-bold text-xs">
-                      PL
-                    </div>
-                    <div>
-                      <p className="text-xs font-bold text-white">Dimas Pratama (Pelanggan)</p>
-                      <p className="text-[10px] text-emerald-300">
-                        Pesan makanan minuman, keranjang belanja, live tracking
-                      </p>
-                    </div>
-                  </div>
-                  {currentUser.role === 'customer' && (
-                    <Check className="w-4 h-4 text-emerald-400" />
-                  )}
-                </button>
-              </div>
-            </div>
-
-            {/* Custom Manual Login */}
-            <div className="pt-2 border-t border-white/10 space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">
-                  Atau Buat / Masuk Akun Kustom
-                </span>
-                <button
-                  onClick={() => setActiveTab(activeTab === 'email' ? 'quick' : 'email')}
-                  className="text-xs text-amber-400 hover:text-amber-300 font-medium"
-                >
-                  {activeTab === 'email' ? 'Tutup Formulir' : 'Buka Formulir'}
+                  <UserPlus className="w-3.5 h-3.5" />
+                  <span>Daftar Baru</span>
                 </button>
               </div>
 
-              {activeTab === 'email' && (
-                <form onSubmit={handleEmailSubmit} className="space-y-3 pt-2 text-xs">
+              <form onSubmit={handleEmailSubmit} className="space-y-3 text-xs">
+                {formError && (
+                  <div className="flex items-center gap-2 p-2.5 rounded-xl bg-rose-500/15 border border-rose-500/30 text-rose-300 text-[11px]">
+                    <AlertCircle className="w-4 h-4 shrink-0 text-rose-400" />
+                    <span>{formError}</span>
+                  </div>
+                )}
+
+                {authMode === 'register' && (
                   <div>
                     <label className="text-[11px] text-gray-300 block mb-1">Nama Lengkap</label>
-                    <input
-                      type="text"
-                      required
-                      placeholder="Nama Anda"
-                      value={nameInput}
-                      onChange={(e) => setNameInput(e.target.value)}
-                      className="w-full bg-white/5 border border-white/10 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-amber-400"
-                    />
+                    <div className="relative">
+                      <UserIcon className="w-3.5 h-3.5 text-gray-400 absolute left-3 top-3" />
+                      <input
+                        type="text"
+                        required
+                        placeholder="Nama lengkap Anda"
+                        value={nameInput}
+                        onChange={(e) => setNameInput(e.target.value)}
+                        className="w-full bg-white/5 border border-white/10 rounded-xl p-2.5 pl-9 text-xs text-white focus:outline-none focus:border-amber-400 placeholder:text-gray-500"
+                      />
+                    </div>
                   </div>
+                )}
 
-                  <div>
-                    <label className="text-[11px] text-gray-300 block mb-1">Email</label>
+                <div>
+                  <label className="text-[11px] text-gray-300 block mb-1">Email</label>
+                  <div className="relative">
+                    <Mail className="w-3.5 h-3.5 text-gray-400 absolute left-3 top-3" />
                     <input
                       type="email"
+                      required
                       placeholder="email@example.com"
                       value={emailInput}
                       onChange={(e) => setEmailInput(e.target.value)}
-                      className="w-full bg-white/5 border border-white/10 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-amber-400"
+                      className="w-full bg-white/5 border border-white/10 rounded-xl p-2.5 pl-9 text-xs text-white focus:outline-none focus:border-amber-400 placeholder:text-gray-500"
                     />
                   </div>
+                </div>
 
+                {authMode === 'register' && (
                   <div>
-                    <label className="text-[11px] text-gray-300 block mb-1">Peran Akses</label>
-                    <select
-                      value={selectedRole}
-                      onChange={(e) => setSelectedRole(e.target.value as UserRole)}
-                      className="w-full bg-gray-900 border border-white/15 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-amber-400"
-                    >
-                      <option value="customer">Pelanggan (Customer)</option>
-                      <option value="cashier">Kasir Toko (Staff)</option>
-                      <option value="admin">Super Admin (Owner)</option>
-                    </select>
+                    <label className="text-[11px] text-gray-300 block mb-1">
+                      Nomor HP <span className="text-gray-400 text-[10px]">(Opsional / WhatsApp)</span>
+                    </label>
+                    <div className="relative">
+                      <Phone className="w-3.5 h-3.5 text-gray-400 absolute left-3 top-3" />
+                      <input
+                        type="tel"
+                        placeholder="Contoh: 081234567890"
+                        value={phoneInput}
+                        onChange={(e) => setPhoneInput(e.target.value)}
+                        className="w-full bg-white/5 border border-white/10 rounded-xl p-2.5 pl-9 text-xs text-white focus:outline-none focus:border-amber-400 placeholder:text-gray-500"
+                      />
+                    </div>
                   </div>
+                )}
 
-                  <button
-                    type="submit"
-                    className="w-full py-2.5 px-4 rounded-xl bg-amber-400 hover:bg-amber-300 text-gray-950 font-bold text-xs transition cursor-pointer"
-                  >
-                    Simpan &amp; Masuk
-                  </button>
-                </form>
-              )}
+                <div>
+                  <label className="text-[11px] text-gray-300 block mb-1">Password</label>
+                  <div className="relative">
+                    <Lock className="w-3.5 h-3.5 text-gray-400 absolute left-3 top-3" />
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      required
+                      placeholder={authMode === 'register' ? 'Minimal 4 karakter' : 'Masukkan password'}
+                      value={passwordInput}
+                      onChange={(e) => setPasswordInput(e.target.value)}
+                      className="w-full bg-white/5 border border-white/10 rounded-xl p-2.5 pl-9 pr-9 text-xs text-white focus:outline-none focus:border-amber-400 placeholder:text-gray-500"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-2.5 top-2.5 text-gray-400 hover:text-white p-0.5 rounded cursor-pointer"
+                    >
+                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  className="w-full py-2.5 px-4 rounded-xl bg-amber-400 hover:bg-amber-300 text-gray-950 font-bold text-xs transition cursor-pointer shadow-md"
+                >
+                  {authMode === 'login' ? 'Masuk ke Sistem' : 'Daftar Akun'}
+                </button>
+
+                {authMode === 'login' && (
+                  <div className="pt-2 border-t border-white/5 space-y-1.5 text-[11px] text-gray-400">
+                    <p className="text-[10px] uppercase font-semibold tracking-wider text-gray-400">
+                      Akun Bawaan Staf:
+                    </p>
+                    <div className="grid grid-cols-2 gap-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setEmailInput('admin@jajan.com');
+                          setPasswordInput('admin');
+                          setFormError(null);
+                        }}
+                        className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-left transition cursor-pointer"
+                      >
+                        <span className="block font-semibold text-amber-300">Admin</span>
+                        <span className="block text-[10px] text-gray-400">admin@jajan.com</span>
+                        <span className="block text-[9px] text-gray-400">Pass: admin</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setEmailInput('kasir@jajan.com');
+                          setPasswordInput('kasir');
+                          setFormError(null);
+                        }}
+                        className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-left transition cursor-pointer"
+                      >
+                        <span className="block font-semibold text-emerald-300">Kasir</span>
+                        <span className="block text-[10px] text-gray-400">kasir@jajan.com</span>
+                        <span className="block text-[9px] text-gray-400">Pass: kasir</span>
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </form>
             </div>
           </div>
         </motion.div>

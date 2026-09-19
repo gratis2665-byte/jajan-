@@ -23,6 +23,8 @@ interface AppContextType {
   switchRole: (role: UserRole) => void;
   updateUserRole: (userId: string, newRole: UserRole) => void;
   addNewStaff: (staffData: Omit<User, 'id'>) => void;
+  registerUser: (userData: Omit<User, 'id'>) => User;
+  deleteUser: (userId: string) => void;
 
   products: Product[];
   addProduct: (product: Omit<Product, 'id'>) => void;
@@ -81,12 +83,61 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // Users state
   const [users, setUsers] = useState<User[]>(() => {
     const saved = localStorage.getItem('jajan_users');
-    return saved ? JSON.parse(saved) : initialUsers;
+    if (saved) {
+      try {
+        const parsed: User[] = JSON.parse(saved);
+        // Clean out legacy dummy accounts if present
+        const filtered = parsed.filter(
+          (u) =>
+            u.id !== 'user-cashier' &&
+            u.id !== 'user-customer' &&
+            u.id !== 'google-demo-user' &&
+            u.name !== 'Dimas Pratama' &&
+            u.name !== 'Siti Rahmawati' &&
+            u.name !== 'Budi Santoso'
+        );
+        // Ensure default admin & cashier are present
+        const hasAdmin = filtered.some((u) => u.email.toLowerCase() === 'admin@jajan.com');
+        const hasCashier = filtered.some((u) => u.email.toLowerCase() === 'kasir@jajan.com');
+        let combined = [...filtered];
+        if (!hasAdmin) combined.push(initialUsers[0]);
+        if (!hasCashier) combined.push(initialUsers[1]);
+        return combined;
+      } catch {
+        // fallback
+      }
+    }
+    return initialUsers;
   });
 
   const [currentUser, setCurrentUser] = useState<User>(() => {
     const saved = localStorage.getItem('jajan_current_user');
-    return saved ? JSON.parse(saved) : initialUsers[2]; // Default to Dimas Pratama (customer)
+    if (saved) {
+      try {
+        const parsed: User = JSON.parse(saved);
+        if (
+          parsed.id !== 'user-cashier' &&
+          parsed.id !== 'user-customer' &&
+          parsed.id !== 'google-demo-user' &&
+          parsed.name !== 'Dimas Pratama' &&
+          parsed.name !== 'Siti Rahmawati' &&
+          parsed.name !== 'Budi Santoso'
+        ) {
+          return parsed;
+        }
+      } catch {
+        // fallback
+      }
+    }
+    // Default user is clean admin or customer
+    return (
+      initialUsers[0] || {
+        id: 'user-admin',
+        name: 'Administrator',
+        email: 'admin@jajan.com',
+        role: 'admin',
+      }
+    );
   });
 
   // Products state
@@ -295,6 +346,29 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       isCustomAdmin: true,
     };
     setUsers((prev) => [...prev, newStaff]);
+  };
+
+  const registerUser = (userData: Omit<User, 'id'>): User => {
+    const newUser: User = {
+      ...userData,
+      id: `user-${Date.now()}`,
+    };
+    setUsers((prev) => [...prev, newUser]);
+    return newUser;
+  };
+
+  const deleteUser = (userId: string) => {
+    setUsers((prev) => prev.filter((u) => u.id !== userId));
+    if (currentUser.id === userId) {
+      // If deleted current user, switch to fallback customer
+      const fallback: User = {
+        id: `user-${Date.now()}`,
+        name: 'Pengguna',
+        email: 'user@jajan.com',
+        role: 'customer',
+      };
+      setCurrentUser(fallback);
+    }
   };
 
   // Products CRUD
@@ -598,6 +672,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         switchRole,
         updateUserRole,
         addNewStaff,
+        registerUser,
+        deleteUser,
 
         products,
         addProduct,

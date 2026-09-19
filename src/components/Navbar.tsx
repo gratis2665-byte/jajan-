@@ -5,14 +5,11 @@ import {
   ShoppingBag,
   Clock,
   LayoutDashboard,
-  Shield,
   User as UserIcon,
   Bell,
-  ChevronDown,
   Sparkles,
   ExternalLink,
   Store,
-  Check,
   FileSpreadsheet,
 } from 'lucide-react';
 import { UserRole } from '../types';
@@ -20,7 +17,6 @@ import { UserRole } from '../types';
 export const Navbar: React.FC = () => {
   const {
     currentUser,
-    switchRole,
     cartTotalCount,
     cartSubtotal,
     setIsCartOpen,
@@ -34,19 +30,12 @@ export const Navbar: React.FC = () => {
     googleSpreadsheet,
   } = useApp();
 
-  const [isRoleDropdownOpen, setIsRoleDropdownOpen] = useState(false);
   const [isNotifDropdownOpen, setIsNotifDropdownOpen] = useState(false);
 
   const unreadNotifs = notifications.filter((n) => !n.read);
   const activeOrdersCount = orders.filter(
     (o) => o.status !== 'completed' && o.status !== 'cancelled'
   ).length;
-
-  const roleLabels: Record<UserRole, { label: string; color: string; desc: string }> = {
-    customer: { label: 'Pelanggan', color: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30', desc: 'Pesan jajan & lacak' },
-    cashier: { label: 'Kasir', color: 'bg-amber-500/20 text-amber-300 border-amber-500/30', desc: 'POS Dapur & pesanan' },
-    admin: { label: 'Super Admin', color: 'bg-indigo-500/20 text-indigo-300 border-indigo-500/30', desc: 'Akses penuh & sheets' },
-  };
 
   return (
     <header className="sticky top-0 z-40 w-full px-4 sm:px-6 pt-3 pb-2">
@@ -162,72 +151,6 @@ export const Navbar: React.FC = () => {
               <ExternalLink className="w-3 h-3 opacity-70" />
             </a>
           )}
-
-          {/* Quick Role Switcher Pill */}
-          <div className="relative">
-            <button
-              onClick={() => setIsRoleDropdownOpen(!isRoleDropdownOpen)}
-              className={`flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1.5 rounded-xl border transition cursor-pointer ${
-                roleLabels[currentUser.role].color
-              }`}
-            >
-              <Shield className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">{roleLabels[currentUser.role].label}</span>
-              <ChevronDown className="w-3 h-3 opacity-80" />
-            </button>
-
-            <AnimatePresence>
-              {isRoleDropdownOpen && (
-                <motion.div
-                  initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                  className="absolute right-0 mt-2 w-64 apple-glass rounded-2xl p-2 shadow-2xl z-50 border border-white/20"
-                >
-                  <div className="px-3 py-2 border-b border-white/10 mb-1">
-                    <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">
-                      Ganti Akses Peran (RBAC)
-                    </p>
-                    <p className="text-xs text-gray-200 font-medium">{currentUser.name}</p>
-                  </div>
-
-                  {(['customer', 'cashier', 'admin'] as UserRole[]).map((role) => (
-                    <button
-                      key={role}
-                      onClick={() => {
-                        switchRole(role);
-                        setIsRoleDropdownOpen(false);
-                      }}
-                      className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs transition cursor-pointer text-left ${
-                        currentUser.role === role
-                          ? 'bg-white/15 text-white font-semibold'
-                          : 'text-gray-300 hover:bg-white/10 hover:text-white'
-                      }`}
-                    >
-                      <div>
-                        <div className="font-medium text-white">{roleLabels[role].label}</div>
-                        <div className="text-[10px] text-gray-400">{roleLabels[role].desc}</div>
-                      </div>
-                      {currentUser.role === role && <Check className="w-4 h-4 text-emerald-400" />}
-                    </button>
-                  ))}
-
-                  <div className="pt-1 mt-1 border-t border-white/10">
-                    <button
-                      onClick={() => {
-                        setIsRoleDropdownOpen(false);
-                        setIsAuthModalOpen(true);
-                      }}
-                      className="w-full flex items-center justify-center gap-1.5 text-xs text-sky-300 hover:text-white py-1.5 hover:bg-white/10 rounded-xl transition cursor-pointer font-medium"
-                    >
-                      <UserIcon className="w-3.5 h-3.5" />
-                      Login Akun / Google Sheets
-                    </button>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
 
           {/* Notifications Bell */}
           <div className="relative">
