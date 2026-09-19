@@ -21,6 +21,7 @@ import {
   ShieldCheck,
   Heart,
   Store,
+  PhoneCall,
 } from 'lucide-react';
 import { playTapSound } from './services/soundEffects';
 
@@ -28,11 +29,11 @@ const MainContent: React.FC = () => {
   const { activeTab, setActiveTab, cartTotalCount, setIsCartOpen, currentUser } = useApp();
 
   return (
-    <div className="min-h-screen flex flex-col text-slate-100 selection:bg-amber-400 selection:text-gray-950 pb-20 sm:pb-10">
+    <div className="min-h-screen flex flex-col bg-[#FAF7F2] text-[#1F1A17] selection:bg-[#FFC224] selection:text-[#1F1A17] pb-20 sm:pb-10 font-sans">
       {/* Top Floating Dynamic Island */}
       <DynamicIslandNotification />
 
-      {/* Main Glass Navigation Bar */}
+      {/* Main Navigation Bar */}
       <Navbar />
 
       {/* Tab View Router */}
@@ -45,60 +46,60 @@ const MainContent: React.FC = () => {
         {activeTab === 'admin' && currentUser.role === 'admin' && <AdminDashboard />}
       </main>
 
-      {/* Modern Apple Glass Footer */}
-      <footer className="mt-16 border-t border-white/10 bg-black/40 backdrop-blur-xl py-10 px-4 sm:px-6">
+      {/* Warm Bakery / Food Delivery Footer (Inspired by IMG_1820 & IMG_1819) */}
+      <footer className="mt-20 border-t border-[#EFE8DE] bg-white py-12 px-4 sm:px-6">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6 text-center md:text-left">
           <div className="space-y-1.5">
-            <div className="flex items-center justify-center md:justify-start gap-2">
-              <div className="w-7 h-7 rounded-xl bg-gradient-to-tr from-amber-400 to-rose-500 flex items-center justify-center text-white font-black text-xs">
-                J
+            <div className="flex items-center justify-center md:justify-start gap-2.5">
+              <div className="w-8 h-8 rounded-xl bg-[#D81A3C] text-white flex items-center justify-center font-bold text-sm shadow-xs">
+                🍪
               </div>
-              <span className="font-extrabold text-white text-base tracking-tight">
-                JAJAN Makanan &amp; Minuman
+              <span className="font-extrabold text-[#1F1A17] text-lg tracking-tight font-heading">
+                Food<span className="text-[#D81A3C]">Jajan</span> Delivery &amp; Bakery
               </span>
             </div>
-            <p className="text-xs text-gray-400 max-w-sm">
-              Sistem pemesanan makanan, minuman, dan snack modern dengan QRIS real-time &amp; tracking pesanan dapur.
+            <p className="text-xs text-[#736962] max-w-sm">
+              Sistem pemesanan jajanan dan bakery otentik dengan QRIS instan, pelacakan live pesanan, dan rekap otomatis.
             </p>
           </div>
 
-          {/* Badges */}
-          <div className="flex flex-wrap items-center justify-center gap-3 text-xs text-gray-300">
-            <span className="apple-glass-pill px-3 py-1.5 rounded-full flex items-center gap-1.5 border border-white/10">
-              <QrCode className="w-3.5 h-3.5 text-amber-400" />
+          {/* Trust Badges */}
+          <div className="flex flex-wrap items-center justify-center gap-2.5 text-xs text-[#52311D]">
+            <span className="px-3 py-1.5 rounded-full bg-[#FAF7F2] border border-[#EFE8DE] flex items-center gap-1.5 font-medium">
+              <QrCode className="w-3.5 h-3.5 text-[#D81A3C]" />
               <span>QRIS Standard Nasional</span>
             </span>
-            <span className="apple-glass-pill px-3 py-1.5 rounded-full flex items-center gap-1.5 border border-white/10">
-              <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-              <span>Enkripsi Pembayaran Aman</span>
+            <span className="px-3 py-1.5 rounded-full bg-[#FAF7F2] border border-[#EFE8DE] flex items-center gap-1.5 font-medium">
+              <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+              <span>Pembayaran Terverifikasi</span>
             </span>
-            <span className="apple-glass-pill px-3 py-1.5 rounded-full flex items-center gap-1.5 border border-white/10">
-              <Clock className="w-3.5 h-3.5 text-sky-400" />
-              <span>Buka Setiap Hari: 08.00 - 22.00</span>
+            <span className="px-3 py-1.5 rounded-full bg-[#FAF7F2] border border-[#EFE8DE] flex items-center gap-1.5 font-medium">
+              <Clock className="w-3.5 h-3.5 text-[#FFC224]" />
+              <span>Buka: 08.00 - 22.00 WIB</span>
             </span>
           </div>
 
-          <div className="text-xs text-gray-400">
-            <p className="flex items-center justify-center md:justify-end gap-1">
-              Dibuat dengan <Heart className="w-3 h-3 text-rose-500 fill-rose-500" /> untuk UMKM Indonesia
+          <div className="text-xs text-[#736962]">
+            <p className="flex items-center justify-center md:justify-end gap-1 font-medium">
+              Dibuat dengan rasa cinta kuliner untuk UMKM Indonesia
             </p>
-            <p className="text-[11px] text-gray-500 mt-0.5">
-              Tema Apple Liquid Glass • Next/Vite High Performance
+            <p className="text-[11px] text-[#A89C92] mt-0.5">
+              Food Delivery &amp; Pastry Order System
             </p>
           </div>
         </div>
       </footer>
 
-      {/* Mobile Floating Bottom Dock (Single Apple Liquid Tab Bar) */}
+      {/* Mobile Floating Bottom Dock (Warm clean human tab bar) */}
       <div className="md:hidden fixed bottom-3 inset-x-4 z-40">
-        <div className="rounded-full p-1.5 border border-white/20 shadow-xl flex items-center justify-around bg-gray-950/90 backdrop-blur-2xl">
+        <div className="rounded-full p-1.5 border border-[#EFE8DE] shadow-xl flex items-center justify-around bg-white/95 backdrop-blur-md">
           <button
             onClick={() => {
               playTapSound();
               setActiveTab('menu');
             }}
             className={`flex flex-col items-center gap-0.5 py-1.5 px-3 rounded-full transition cursor-pointer ${
-              activeTab === 'menu' ? 'text-amber-400 font-bold bg-white/10' : 'text-gray-400'
+              activeTab === 'menu' ? 'text-[#D81A3C] font-bold bg-red-50' : 'text-[#736962]'
             }`}
           >
             <UtensilsCrossed className="w-4 h-4" />
@@ -111,7 +112,7 @@ const MainContent: React.FC = () => {
               setActiveTab('tracker');
             }}
             className={`flex flex-col items-center gap-0.5 py-1.5 px-3 rounded-full transition cursor-pointer ${
-              activeTab === 'tracker' ? 'text-amber-400 font-bold bg-white/10' : 'text-gray-400'
+              activeTab === 'tracker' ? 'text-[#D81A3C] font-bold bg-red-50' : 'text-[#736962]'
             }`}
           >
             <Clock className="w-4 h-4" />
@@ -123,12 +124,12 @@ const MainContent: React.FC = () => {
               playTapSound();
               setIsCartOpen(true);
             }}
-            className="relative flex flex-col items-center gap-0.5 py-1.5 px-3 rounded-full text-gray-400 hover:text-white transition cursor-pointer"
+            className="relative flex flex-col items-center gap-0.5 py-1.5 px-3 rounded-full text-[#736962] hover:text-[#1F1A17] transition cursor-pointer"
           >
             <ShoppingBag className="w-4 h-4" />
             <span className="text-[10px]">Keranjang</span>
             {cartTotalCount > 0 && (
-              <span className="absolute top-1 right-2 w-4 h-4 rounded-full bg-rose-500 text-white font-bold text-[9px] flex items-center justify-center">
+              <span className="absolute top-1 right-2 w-4 h-4 rounded-full bg-[#D81A3C] text-white font-bold text-[9px] flex items-center justify-center">
                 {cartTotalCount}
               </span>
             )}
@@ -141,10 +142,10 @@ const MainContent: React.FC = () => {
                 setActiveTab('cashier');
               }}
               className={`flex flex-col items-center gap-0.5 py-1.5 px-3 rounded-full transition cursor-pointer ${
-                activeTab === 'cashier' ? 'text-amber-400 font-bold bg-white/10' : 'text-gray-400'
+                activeTab === 'cashier' ? 'text-[#1F1A17] font-bold bg-[#FFC224]' : 'text-[#736962]'
               }`}
             >
-              <Store className="w-4 h-4 text-amber-400" />
+              <Store className="w-4 h-4" />
               <span className="text-[10px]">Kasir</span>
             </button>
           )}
@@ -156,7 +157,7 @@ const MainContent: React.FC = () => {
                 setActiveTab('admin');
               }}
               className={`flex flex-col items-center gap-0.5 py-1.5 px-3 rounded-full transition cursor-pointer ${
-                activeTab === 'admin' ? 'text-amber-400 font-bold bg-white/10' : 'text-gray-400'
+                activeTab === 'admin' ? 'text-white font-bold bg-[#1F1A17]' : 'text-[#736962]'
               }`}
             >
               <LayoutDashboard className="w-4 h-4" />
@@ -166,20 +167,30 @@ const MainContent: React.FC = () => {
         </div>
       </div>
 
-      {/* Global Modals & Drawers */}
+      {/* Slide-over Cart Drawer */}
       <CartDrawer />
+
+      {/* Product Detail Modal */}
       <ProductDetailModal />
+
+      {/* Checkout Payment Modal */}
       <CheckoutPaymentModal />
+
+      {/* Order Tracker Modal */}
       <OrderTrackerModal />
+
+      {/* Authentication Modal */}
       <AuthModal />
     </div>
   );
 };
 
-export default function App() {
+export function App() {
   return (
     <AppProvider>
       <MainContent />
     </AppProvider>
   );
 }
+
+export default App;

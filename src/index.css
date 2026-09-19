@@ -2,83 +2,119 @@
 
 @layer base {
   :root {
-    --apple-font: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", sans-serif;
+    --font-heading: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    --font-body: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    
+    /* Warm Appetite Brand Palette */
+    --food-cream: #FAF7F2;
+    --food-surface: #FFFFFF;
+    --food-yellow: #FFC224;
+    --food-yellow-light: #FFF8E7;
+    --food-red: #D81A3C;
+    --food-red-hover: #BF1231;
+    --food-brown: #361A0C;
+    --food-brown-light: #52311D;
+    --food-text-dark: #1F1A17;
+    --food-text-muted: #736962;
+    --food-border: #EFE8DE;
   }
 
   body {
-    font-family: var(--apple-font);
-    background-color: #0b0f19;
-    color: #f3f4f6;
+    font-family: var(--font-body);
+    background-color: var(--food-cream);
+    color: var(--food-text-dark);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     overflow-x: hidden;
   }
+
+  h1, h2, h3, h4, .font-heading {
+    font-family: var(--font-heading);
+  }
 }
 
-/* Apple Liquid Glass Styling */
+/* Warm Human-Crafted Food Delivery Styling */
+.food-card {
+  background: #FFFFFF;
+  border: 1px solid var(--food-border);
+  box-shadow: 0 4px 20px -2px rgba(54, 26, 12, 0.05), 0 2px 6px -1px rgba(54, 26, 12, 0.03);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.food-card:hover {
+  transform: translateY(-3px);
+  border-color: #E2D7C8;
+  box-shadow: 0 16px 32px -4px rgba(54, 26, 12, 0.1), 0 4px 12px -2px rgba(54, 26, 12, 0.04);
+}
+
+.food-pill {
+  background: #FFFFFF;
+  border: 1px solid var(--food-border);
+  box-shadow: 0 2px 6px rgba(54, 26, 12, 0.04);
+}
+
+.food-modal {
+  background: #FFFFFF;
+  border: 1px solid var(--food-border);
+  box-shadow: 0 25px 60px -15px rgba(54, 26, 12, 0.25);
+}
+
+/* Backward compatibility aliases for existing classes to keep zero breakage */
 .apple-glass {
-  background: rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(24px) saturate(180%);
-  -webkit-backdrop-filter: blur(24px) saturate(180%);
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.5), inset 0 1px 1px 0 rgba(255, 255, 255, 0.2);
+  background: #FFFFFF;
+  border: 1px solid var(--food-border);
+  box-shadow: 0 6px 24px -4px rgba(54, 26, 12, 0.06);
 }
 
 .apple-glass-card {
-  background: rgba(22, 28, 45, 0.65);
-  backdrop-filter: blur(20px) saturate(160%);
-  -webkit-backdrop-filter: blur(20px) saturate(160%);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  box-shadow: 0 12px 32px 0 rgba(0, 0, 0, 0.37), inset 0 1px 0 0 rgba(255, 255, 255, 0.15);
-  transition: all 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+  background: #FFFFFF;
+  border: 1px solid var(--food-border);
+  box-shadow: 0 4px 16px -2px rgba(54, 26, 12, 0.06);
+  transition: all 0.22s ease-out;
 }
 
 .apple-glass-card:hover {
-  border-color: rgba(255, 255, 255, 0.25);
-  box-shadow: 0 16px 40px 0 rgba(0, 0, 0, 0.45), inset 0 1px 0 0 rgba(255, 255, 255, 0.25);
+  border-color: #E0D3C1;
+  box-shadow: 0 12px 28px -4px rgba(54, 26, 12, 0.1);
 }
 
 .apple-glass-interactive {
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  box-shadow: 0 8px 24px -4px rgba(0, 0, 0, 0.3), inset 0 1px 0 0 rgba(255, 255, 255, 0.2);
+  background: #FFFFFF;
+  border: 1px solid var(--food-border);
+  box-shadow: 0 2px 8px rgba(54, 26, 12, 0.05);
+  transition: all 0.2s ease-out;
 }
 
 .apple-glass-interactive:hover {
-  background: rgba(255, 255, 255, 0.16);
-  border-color: rgba(255, 255, 255, 0.28);
+  border-color: #E0D3C1;
+  background: #FCFAF6;
 }
 
 .apple-glass-pill {
-  background: rgba(255, 255, 255, 0.12);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: #FFFFFF;
+  border: 1px solid var(--food-border);
+  box-shadow: 0 1px 4px rgba(54, 26, 12, 0.04);
 }
 
-/* Apple Dynamic Island Style */
 .dynamic-island {
-  background: rgba(10, 10, 12, 0.92);
-  backdrop-filter: blur(30px) saturate(200%);
-  -webkit-backdrop-filter: blur(30px) saturate(200%);
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7), 0 0 20px rgba(56, 189, 248, 0.15);
+  background: #1F1A17;
+  color: #FFFFFF;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.35);
 }
 
-/* Custom Sleek Scrollbar */
+/* Custom Clean Warm Scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: transparent;
+  background: #F3ECE1;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.2);
+  background: #D9CBB7;
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.35);
+  background: #BFAD93;
 }
