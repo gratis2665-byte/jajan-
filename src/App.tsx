@@ -1,7 +1,6 @@
 import React from 'react';
 import { AppProvider, useApp } from './context/AppContext';
 import { Navbar } from './components/Navbar';
-import { DynamicIslandNotification } from './components/DynamicIslandNotification';
 import { MenuCatalog } from './components/MenuCatalog';
 import { AdminDashboard } from './components/AdminDashboard';
 import { CashierDashboard } from './components/CashierDashboard';
@@ -16,12 +15,9 @@ import {
   Clock,
   LayoutDashboard,
   ShoppingBag,
-  Sparkles,
   QrCode,
   ShieldCheck,
-  Heart,
   Store,
-  PhoneCall,
 } from 'lucide-react';
 import { playTapSound } from './services/soundEffects';
 
@@ -30,9 +26,6 @@ const MainContent: React.FC = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-[#FAF7F2] text-[#1F1A17] selection:bg-[#FFC224] selection:text-[#1F1A17] pb-20 sm:pb-10 font-sans">
-      {/* Top Floating Dynamic Island */}
-      <DynamicIslandNotification />
-
       {/* Main Navigation Bar */}
       <Navbar />
 

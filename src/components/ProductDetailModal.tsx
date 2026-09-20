@@ -66,65 +66,65 @@ export const ProductDetailModal: React.FC = () => {
 
         {/* Modal Content - Warm Human Craft Style */}
         <motion.div
-          initial={{ scale: 0.9, opacity: 0, y: 20 }}
+          initial={{ scale: 0.95, opacity: 0, y: 15 }}
           animate={{ scale: 1, opacity: 1, y: 0 }}
-          exit={{ scale: 0.9, opacity: 0, y: 20 }}
-          transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-          className="bg-white rounded-3xl w-full max-w-lg overflow-hidden relative z-10 border border-[#EFE8DE] shadow-2xl flex flex-col max-h-[90vh]"
+          exit={{ scale: 0.95, opacity: 0, y: 15 }}
+          transition={{ duration: 0.2 }}
+          className="bg-white rounded-2xl w-full max-w-lg overflow-hidden relative z-10 border border-[#E8DEC8] shadow-xl flex flex-col max-h-[90vh]"
         >
           {/* Header Image */}
-          <div className="relative w-full h-56 shrink-0 bg-[#FAF7F2]">
+          <div className="relative w-full h-52 shrink-0 bg-[#FAF7F2]">
             <img
               src={product.image}
               alt={product.name}
               referrerPolicy="no-referrer"
               className="w-full h-full object-cover"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent" />
 
             {/* Close Button */}
             <button
               onClick={() => setSelectedProductForDetail(null)}
-              className="absolute top-4 right-4 w-9 h-9 rounded-full bg-white/90 text-[#1F1A17] flex items-center justify-center hover:bg-white transition cursor-pointer shadow-md"
+              className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/90 text-[#1F1A17] flex items-center justify-center hover:bg-white transition cursor-pointer shadow-sm"
               aria-label="Tutup modal"
             >
-              <X className="w-5 h-5" />
+              <X className="w-4 h-4" />
             </button>
 
             {/* Product Title on Image */}
-            <div className="absolute bottom-4 left-5 right-5 text-white">
+            <div className="absolute bottom-3 left-4 right-4 text-white">
               <div className="flex items-center gap-2 mb-1">
                 {product.isBestSeller && (
-                  <span className="px-2.5 py-0.5 rounded-md text-[10px] font-bold bg-[#FFC224] text-[#1F1A17] flex items-center gap-1 shadow-xs uppercase">
-                    Recommended
+                  <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-[#D81A3C] text-white">
+                    Favorit
                   </span>
                 )}
-                <span className="bg-black/40 backdrop-blur-xs px-2.5 py-0.5 rounded-full text-[10px] text-white font-medium capitalize">
+                <span className="bg-black/50 px-2 py-0.5 rounded-md text-[10px] text-white font-medium capitalize">
                   {product.category}
                 </span>
-                <span className="bg-black/40 backdrop-blur-xs px-2.5 py-0.5 rounded-full text-[10px] text-[#FFC224] flex items-center gap-1 font-medium">
-                  <Clock className="w-3 h-3" /> {product.preparationTimeMinutes} mnt
+                <span className="bg-black/50 px-2 py-0.5 rounded-md text-[10px] text-[#FFC224] flex items-center gap-1 font-medium">
+                  <Clock className="w-3 h-3" /> ± {product.preparationTimeMinutes} mnt
                 </span>
               </div>
-              <h2 className="text-xl sm:text-2xl font-black tracking-tight font-heading drop-shadow-sm">
+              <h2 className="text-xl font-bold tracking-tight font-heading">
                 {product.name}
               </h2>
             </div>
           </div>
 
           {/* Body Options */}
-          <div className="p-5 sm:p-6 overflow-y-auto space-y-5 text-left bg-white">
-            <p className="text-xs sm:text-sm text-[#736962] leading-relaxed">{product.description}</p>
+          <div className="p-5 overflow-y-auto space-y-4 text-left bg-white">
+            <p className="text-xs sm:text-sm text-[#5C4D44] leading-relaxed">{product.description}</p>
 
             {/* Custom Options */}
             {product.options &&
               product.options.map((optionGroup) => (
-                <div key={optionGroup.name} className="space-y-2.5">
+                <div key={optionGroup.name} className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <label className="text-xs font-bold text-[#1F1A17] tracking-wide uppercase font-heading">
+                    <label className="text-xs font-bold text-[#2C1810] tracking-wide uppercase font-heading">
                       {optionGroup.name}
                     </label>
-                    <span className="text-[11px] text-[#736962] font-medium">Pilih salah satu</span>
+                    <span className="text-[11px] text-[#8C7D73]">Pilih salah satu</span>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -140,10 +140,10 @@ export const ProductDetailModal: React.FC = () => {
                           onClick={() =>
                             handleOptionSelect(optionGroup.name, choice.label, choice.extraPrice)
                           }
-                          className={`p-3 rounded-2xl border text-left transition flex items-center justify-between cursor-pointer ${
+                          className={`p-3 rounded-xl border text-left transition flex items-center justify-between cursor-pointer ${
                             isSelected
-                              ? 'bg-red-50/70 border-[#D81A3C] text-[#1F1A17] shadow-xs'
-                              : 'bg-[#FAF7F2] border-[#EFE8DE] text-[#52311D] hover:bg-[#F3ECE1]'
+                              ? 'bg-[#FFF5F6] border-[#D81A3C] text-[#2C1810]'
+                              : 'bg-white border-[#E8DEC8] text-[#52311D] hover:bg-[#FAF7F2]'
                           }`}
                         >
                           <div className="flex items-center gap-2">
@@ -154,7 +154,7 @@ export const ProductDetailModal: React.FC = () => {
                             >
                               {isSelected && <Check className="w-3 h-3 text-white stroke-[3]" />}
                             </div>
-                            <span className="text-xs font-bold">{choice.label}</span>
+                            <span className="text-xs font-semibold">{choice.label}</span>
                           </div>
                           {choice.extraPrice > 0 && (
                             <span className="text-[11px] font-bold text-[#D81A3C]">
@@ -170,23 +170,23 @@ export const ProductDetailModal: React.FC = () => {
 
             {/* Special Instructions / Notes */}
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-[#1F1A17] tracking-wide uppercase font-heading">
+              <label className="text-xs font-bold text-[#2C1810] tracking-wide uppercase font-heading">
                 Catatan Khusus (Opsional)
               </label>
               <textarea
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                placeholder="Contoh: Saus dipisah, es jangan terlalu manis, dll."
+                placeholder="Contoh: Saus dipisah, es sedikit, tidak pakai bawang, dll."
                 rows={2}
-                className="w-full bg-[#FAF7F2] border border-[#EFE8DE] rounded-2xl p-3 text-xs text-[#1F1A17] placeholder-[#736962] focus:outline-none focus:border-[#D81A3C] transition"
+                className="w-full bg-white border border-[#E5DAC8] rounded-xl p-3 text-xs text-[#1F1A17] placeholder-[#8C7D73] focus:outline-none focus:border-[#D81A3C] transition"
               />
             </div>
           </div>
 
           {/* Footer Actions */}
-          <div className="p-4 sm:p-5 border-t border-[#EFE8DE] bg-[#FAF7F2] flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="p-4 border-t border-[#EFE8DE] bg-[#FAF7F2] flex flex-col sm:flex-row items-center justify-between gap-3">
             {/* Quantity Selector */}
-            <div className="flex items-center gap-2 bg-white border border-[#EFE8DE] p-1 rounded-full w-full sm:w-auto justify-between shadow-2xs">
+            <div className="flex items-center gap-2 bg-white border border-[#E5DAC8] p-1 rounded-xl w-full sm:w-auto justify-between">
               <button
                 type="button"
                 onClick={() => {
@@ -194,13 +194,13 @@ export const ProductDetailModal: React.FC = () => {
                   setQuantity((q) => Math.max(1, q - 1));
                 }}
                 disabled={quantity <= 1}
-                className="w-8 h-8 rounded-full bg-[#FAF7F2] hover:bg-[#F3ECE1] text-[#1F1A17] flex items-center justify-center transition disabled:opacity-30 cursor-pointer"
+                className="w-8 h-8 rounded-lg bg-[#FAF7F2] hover:bg-[#F3ECE1] text-[#1F1A17] flex items-center justify-center transition disabled:opacity-30 cursor-pointer"
                 aria-label="Kurangi jumlah"
               >
                 <Minus className="w-4 h-4" />
               </button>
 
-              <span className="text-sm font-extrabold text-[#1F1A17] px-3 min-w-[2rem] text-center font-heading">
+              <span className="text-sm font-bold text-[#2C1810] px-3 min-w-[2rem] text-center font-heading">
                 {quantity}
               </span>
 
@@ -211,7 +211,7 @@ export const ProductDetailModal: React.FC = () => {
                   setQuantity((q) => Math.min(product.stock, q + 1));
                 }}
                 disabled={quantity >= product.stock}
-                className="w-8 h-8 rounded-full bg-[#FAF7F2] hover:bg-[#F3ECE1] text-[#1F1A17] flex items-center justify-center transition disabled:opacity-30 cursor-pointer"
+                className="w-8 h-8 rounded-lg bg-[#FAF7F2] hover:bg-[#F3ECE1] text-[#1F1A17] flex items-center justify-center transition disabled:opacity-30 cursor-pointer"
                 aria-label="Tambah jumlah"
               >
                 <Plus className="w-4 h-4" />
@@ -221,13 +221,13 @@ export const ProductDetailModal: React.FC = () => {
             {/* Submit Add to Cart Button */}
             <button
               onClick={handleAddToCart}
-              className="w-full sm:flex-1 py-3 px-6 rounded-full bg-[#D81A3C] hover:bg-[#BF1231] text-white font-extrabold text-sm flex items-center justify-between shadow-md shadow-red-900/15 active:scale-98 transition cursor-pointer"
+              className="w-full sm:flex-1 py-2.5 px-5 rounded-xl bg-[#D81A3C] hover:bg-[#BF1231] text-white font-bold text-xs sm:text-sm flex items-center justify-between transition cursor-pointer"
             >
               <div className="flex items-center gap-2">
                 <ShoppingBag className="w-4 h-4 text-white" />
-                <span>Tambah Pesanan</span>
+                <span>Tambah ke Pesanan</span>
               </div>
-              <span className="font-black text-base font-heading">
+              <span className="font-extrabold text-sm font-heading">
                 Rp {totalPrice.toLocaleString('id-ID')}
               </span>
             </button>

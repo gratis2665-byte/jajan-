@@ -41,41 +41,40 @@ export const Navbar: React.FC = () => {
   return (
     <header className="sticky top-0 z-40 w-full bg-white/95 backdrop-blur-md border-b border-[#EFE8DE] shadow-xs">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-4">
-        {/* Brand Logo - Warm Food Delivery Cookie / Treat theme */}
+        {/* Brand Logo */}
         <div className="flex items-center gap-3">
           <button
             onClick={() => setActiveTab('menu')}
-            className="flex items-center gap-2.5 text-left group cursor-pointer"
+            className="flex items-center gap-3 text-left group cursor-pointer"
           >
-            {/* Red Cookie / Plate Icon inspired by IMG_1820 */}
-            <div className="w-10 h-10 rounded-2xl bg-[#D81A3C] text-white flex items-center justify-center shadow-md shadow-red-900/10 group-hover:scale-105 transition-transform duration-200">
-              <span className="text-xl">🍪</span>
+            <div className="w-10 h-10 rounded-xl bg-[#2C1810] text-[#FFC224] flex items-center justify-center font-bold text-lg shadow-xs">
+              <span>☕</span>
             </div>
             <div>
-              <div className="flex items-center gap-1.5">
-                <span className="text-xl font-extrabold tracking-tight text-[#1F1A17] font-heading">
-                  Food<span className="text-[#D81A3C]">Jajan</span>
+              <div className="flex items-center gap-1">
+                <span className="text-xl font-bold tracking-tight text-[#2C1810] font-heading">
+                  Jajan<span className="text-[#D81A3C]">Katalog</span>
                 </span>
               </div>
-              <p className="text-[10px] text-[#736962] -mt-1 font-medium tracking-wide">
-                Delivery &amp; Bakery Order
+              <p className="text-[11px] text-[#8C7D73] font-medium">
+                Pesan Makanan &amp; Minuman
               </p>
             </div>
           </button>
         </div>
 
-        {/* Center Navigation Tabs (Warm human editorial style) */}
-        <nav className="hidden md:flex items-center gap-1 bg-[#FAF7F2] p-1.5 rounded-full border border-[#EFE8DE]">
+        {/* Center Navigation Tabs */}
+        <nav className="hidden md:flex items-center gap-1 bg-[#FAF7F2] p-1 rounded-xl border border-[#E8DEC8]">
           <button
             onClick={() => setActiveTab('menu')}
-            className={`px-4 py-1.5 rounded-full text-xs font-semibold transition cursor-pointer flex items-center gap-1.5 ${
+            className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer flex items-center gap-1.5 ${
               activeTab === 'menu'
-                ? 'bg-[#1F1A17] text-white shadow-xs'
-                : 'text-[#52311D] hover:text-[#1F1A17] hover:bg-white/80'
+                ? 'bg-[#2C1810] text-white shadow-xs'
+                : 'text-[#52311D] hover:text-[#1F1A17] hover:bg-white'
             }`}
           >
             <Store className="w-3.5 h-3.5" />
-            <span>Menu Jajan</span>
+            <span>Menu</span>
           </button>
 
           <button
@@ -86,16 +85,16 @@ export const Navbar: React.FC = () => {
                 setActiveTrackOrderId(activeOrder.id);
               }
             }}
-            className={`px-4 py-1.5 rounded-full text-xs font-semibold transition cursor-pointer flex items-center gap-1.5 relative ${
+            className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer flex items-center gap-1.5 relative ${
               activeTab === 'tracker'
-                ? 'bg-[#1F1A17] text-white shadow-xs'
-                : 'text-[#52311D] hover:text-[#1F1A17] hover:bg-white/80'
+                ? 'bg-[#2C1810] text-white shadow-xs'
+                : 'text-[#52311D] hover:text-[#1F1A17] hover:bg-white'
             }`}
           >
             <Clock className="w-3.5 h-3.5" />
             <span>Lacak Pesanan</span>
             {activeOrdersCount > 0 && (
-              <span className="w-2 h-2 rounded-full bg-[#D81A3C] animate-ping" />
+              <span className="w-2 h-2 rounded-full bg-[#D81A3C]" />
             )}
           </button>
 
@@ -103,19 +102,14 @@ export const Navbar: React.FC = () => {
           {(currentUser.role === 'cashier' || currentUser.role === 'admin') && (
             <button
               onClick={() => setActiveTab('cashier')}
-              className={`px-4 py-1.5 rounded-full text-xs font-semibold transition cursor-pointer flex items-center gap-1.5 ${
+              className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer flex items-center gap-1.5 ${
                 activeTab === 'cashier'
-                  ? 'bg-[#FFC224] text-[#1F1A17] font-bold shadow-xs'
-                  : 'text-[#52311D] hover:text-[#1F1A17] hover:bg-white/80'
+                  ? 'bg-[#2C1810] text-white shadow-xs'
+                  : 'text-[#52311D] hover:text-[#1F1A17] hover:bg-white'
               }`}
             >
-              <Store className="w-3.5 h-3.5 text-[#D81A3C]" />
+              <Store className="w-3.5 h-3.5 text-[#FFC224]" />
               <span>Kasir &amp; POS</span>
-              {currentUser.role === 'cashier' && (
-                <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-[#D81A3C]/10 text-[#D81A3C] font-bold">
-                  Shift
-                </span>
-              )}
             </button>
           )}
 
@@ -123,27 +117,24 @@ export const Navbar: React.FC = () => {
           {currentUser.role === 'admin' && (
             <button
               onClick={() => setActiveTab('admin')}
-              className={`px-4 py-1.5 rounded-full text-xs font-semibold transition cursor-pointer flex items-center gap-1.5 ${
+              className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer flex items-center gap-1.5 ${
                 activeTab === 'admin'
-                  ? 'bg-[#1F1A17] text-white shadow-xs'
-                  : 'text-[#52311D] hover:text-[#1F1A17] hover:bg-white/80'
+                  ? 'bg-[#2C1810] text-white shadow-xs'
+                  : 'text-[#52311D] hover:text-[#1F1A17] hover:bg-white'
               }`}
             >
-              <LayoutDashboard className="w-3.5 h-3.5" />
+              <LayoutDashboard className="w-3.5 h-3.5 text-[#FFC224]" />
               <span>Admin</span>
-              <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-[#D81A3C] text-white font-bold">
-                Super
-              </span>
             </button>
           )}
         </nav>
 
         {/* Right Action Icons */}
         <div className="flex items-center gap-2 sm:gap-3">
-          {/* Hotline / Kontak Pill like IMG_1820 & IMG_1819 */}
-          <div className="hidden xl:flex items-center gap-2 bg-[#D81A3C] text-white px-3.5 py-1.5 rounded-full text-xs font-bold shadow-sm">
-            <PhoneCall className="w-3.5 h-3.5" />
-            <span>Hotline: 0812-3456-7890</span>
+          {/* Hotline */}
+          <div className="hidden xl:flex items-center gap-1.5 bg-[#FAF7F2] border border-[#E8DEC8] text-[#52311D] px-3 py-1.5 rounded-xl text-xs font-medium">
+            <PhoneCall className="w-3.5 h-3.5 text-[#D81A3C]" />
+            <span>Bantuan: 0812-3456-7890</span>
           </div>
 
           {/* Google Sheets Link */}
